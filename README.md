@@ -1,239 +1,173 @@
-<h3><div align="center">mihomo 镜像</div>
-
----
-
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/DWX256OnGitHub/Proxy-and-Dashboard" alt="最后提交">
-  <img src="https://img.shields.io/github/actions/workflow/status/DWX256OnGitHub/Proxy-and-Dashboard/docker-build.yml" alt="构建状态">
-  <a href="https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/blob/main/License">
-    <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT许可证">
-  </a>
-  <a href="https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/pkgs/container/proxy-and-dashboard">
-    <img src="https://img.shields.io/badge/GHCR.io-Package-blue?logo=github" alt="GHCR Package">
-  </a>
+
+# Mihomo Proxy & Dashboard
+
+基于 Mihomo 的代理服务镜像，内置 MetaCubeX Dashboard，并由 Caddy 提供 Web 服务。
+
+[![Last commit](https://img.shields.io/github/last-commit/DWX256OnGitHub/Proxy-and-Dashboard)](https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/commits/main)
+[![Build](https://img.shields.io/github/actions/workflow/status/DWX256OnGitHub/Proxy-and-Dashboard/docker-build.yml?branch=main)](https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/actions/workflows/docker-build.yml)
+[![GHCR](https://img.shields.io/badge/GHCR-proxy--and--dashboard-blue?logo=docker)](https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/pkgs/container/proxy-and-dashboard)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](./License)
+
 </div>
 
-mihomo 是一个基于 Clash 核心的代理工具镜像，集成了 Metacubexd 管理面板，提供强大的代理功能和直观的 Web 管理界面。
+## 功能特点
 
----
+- 将 Mihomo 核心与 MetaCubeX Dashboard 集成在一个容器中。
+- 发布 `linux/amd64` 和 `linux/arm64` 多架构镜像；ARM64 主机可直接运行对应镜像。
+- 首次启动时根据环境变量生成 Mihomo 配置，并将配置保存在挂载目录中。
+- Dashboard 由 Caddy 提供，通过同一 Web 端口访问面板和代理 API。
 
-## 🚀 快速上手（30 秒）
+## 快速开始
 
-1. **准备订阅链接**：从机场/订阅服务商获取订阅 URL（形如 `https://example.com/sub?token=xxx`）。免费订阅可网上自行搜索。
-2. **创建网络并运行容器**：
+需要 Docker Compose 和一个可用的订阅链接。
 
 ```bash
-docker network create clash-net
-docker run -d --name mihomo --restart always --network clash-net \
-  -p 7890:7890 -p 7891:7891 -p 7892:7892 -p 7893:7893 -p 7894:7894 \
-  -p 9090:9090 -p 8080:8080 \
-  -e SUBSCRIBE_URL="你的订阅链接" \
-  -e TZ=Asia/Shanghai \
-  ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
+git clone https://github.com/DWX256OnGitHub/Proxy-and-Dashboard.git
+cd Proxy-and-Dashboard
 ```
 
-3. **访问面板**：浏览器打开 `http://<服务器IP>:8080`，登录后即可切换节点、查看流量。
+创建或编辑 `docker-compose.yml`，填入订阅地址和控制器密钥：
 
-> 提示：将 `latest` 换成实际版本号即可固定版本，例如 `docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:v1.19.25`。
-
----
-
-## 🔌 环境变量说明
-
-| 变量 | 默认值 | 说明 |
-|---|---|---|
-| `SUBSCRIBE_URL` | （必填） | 订阅链接，格式 `https://...`，容器会用它生成 `proxy-providers` 配置 |
-| `SUBSCRIBE_NAME` | `default` | 订阅在配置中的名称，建议使用英文字母/数字（不能有空格或特殊字符） |
-| `CLASH_SECRET` | 空 | 外部控制器（9090 端口）的访问密钥；**设置后访问面板也需要输入** |
-| `LOG_LEVEL` | `info` | mihomo 日志级别，可设为 `silent` 关闭大部分日志 |
-| `TZ`（非脚本） | `Asia/Shanghai` | 时区，供容器内 `tzdata` 使用 |
-
----
-
-## 🐳 拉取镜像
-
-```bash
-docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
+```yaml
+services:
+  mihomo:
+    image: ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
+    container_name: mihomo
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      SUBSCRIBE_URL: "https://example.com/your-subscription"
+      SUBSCRIBE_NAME: default
+      CLASH_SECRET: "请替换为强密码"
+      LOG_LEVEL: info
+    ports:
+      - "7890:7890"
+      - "7891:7891"
+      - "7892:7892"
+      - "7893:7893"
+      - "7894:7894"
+      - "8080:8080"
+      - "9090:9090"
+    volumes:
+      - ./clash-config:/root/.config/mihomo
+      - ./metacubexd-config:/config/caddy
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
 ```
 
-> 建议固定版本（如 `docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:vX.Y.Z`）以保证行为可预期，`latest` 跟随最新构建。
->
-> 本仓库构建并发布的镜像可在 `linux/amd64` 和 `linux/arm64` 系统上运行。ARM64 系统可直接运行 ARM64 版本，无需模拟 amd64；Docker 会根据主机架构自动拉取对应版本。
-
----
-
-## 📦 单容器运行方式（详细）
+项目默认配置启用了 TUN；上面的 Compose 示例已包含所需的 `NET_ADMIN` 权限和 `/dev/net/tun` 设备映射。启动服务并查看状态：
 
 ```bash
-# 创建容器网络
-docker network create clash-net
+docker compose up -d
+docker compose logs -f mihomo
+```
 
-# 启动容器
+Dashboard 地址：`http://<服务器IP>:8080`
+
+> 若不需要 TUN，请从 Compose 配置中移除 `cap_add` 和 `devices`，并在首次启动生成配置后，将 `clash-config/config.yaml` 中的 `tun.enable` 改为 `false`，然后重启容器。
+
+### 使用 `docker run`
+
+也可以不使用 Compose，直接运行容器。Linux 主机启用 TUN 时需要 `NET_ADMIN` 权限和 `/dev/net/tun` 设备：
+
+```bash
+mkdir -p clash-config metacubexd-config
+
 docker run -d \
   --name mihomo \
-  --restart always \
-  --network clash-net \
+  --restart unless-stopped \
+  --cap-add NET_ADMIN \
+  --device /dev/net/tun:/dev/net/tun \
   -p 7890:7890 \
   -p 7891:7891 \
   -p 7892:7892 \
   -p 7893:7893 \
   -p 7894:7894 \
-  -p 9090:9090 \
   -p 8080:8080 \
+  -p 9090:9090 \
   -e TZ=Asia/Shanghai \
-  -e LOG_LEVEL=silent \
-  -e CLASH_SECRET="" \
-  -e SUBSCRIBE_URL="your_subscribe_url" \
-  -e SUBSCRIBE_NAME="your_subscribe_name" \
+  -e SUBSCRIBE_URL="https://example.com/your-subscription" \
+  -e SUBSCRIBE_NAME=default \
+  -e CLASH_SECRET="请替换为强密码" \
+  -e LOG_LEVEL=info \
   -v "$(pwd)/clash-config:/root/.config/mihomo" \
   -v "$(pwd)/metacubexd-config:/config/caddy" \
-  --health-cmd "curl -f http://localhost:9090" \
-  --health-interval 30s \
-  --health-timeout 10s \
-  --health-retries 3 \
   ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
 ```
 
-**参数说明：**
+若不使用 TUN，移除 `--cap-add` 和 `--device` 参数，并在首次生成的 `clash-config/config.yaml` 中设置 `tun.enable: false`。已有 `clash-config/config.yaml` 时，更新环境变量不会自动修改该文件。
 
-- `-p 7890:7890` — HTTP 代理端口
-- `-p 7891:7891` — SOCKS5 代理端口
-- `-p 7892:7892` — 混合端口（HTTP+SOCKS5）
-- `-p 7893:7893` — REDIR 端口
-- `-p 7894:7894` — TPROXY 端口
-- `-p 9090:9090` — Clash 外部控制 API
-- `-p 8080:8080` — Metacubexd Web UI
-- `-v $(pwd)/clash-config:/root/.config/mihomo` — **持久化** mihomo 配置/订阅（首次为空目录时自动生成 config.yaml）
-- `-v $(pwd)/metacubexd-config:/config/caddy` — **持久化**面板数据（Caddy 数据目录）
-
----
-
-## 🧩 docker-compose.yml 使用方式
-
-### 方式一：直接用仓库自带的 compose 文件
+## 镜像与架构
 
 ```bash
-# 克隆并进入目录
-git clone https://github.com/DWX256OnGitHub/Proxy-and-Dashboard.git
-cd Proxy-and-Dashboard
-
-# 修改 docker-compose.yml 中的 SUBSCRIBE_URL
-# （或复制一份另用）
-sed -i 's|your_subscribe_url|你的订阅链接|' docker-compose.yml
-
-# 启动
-docker-compose up -d
+docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
 ```
 
-### 方式二：创建你自己的 compose 文件
+镜像支持 `linux/amd64` 和 `linux/arm64`。Docker 会依据主机架构自动拉取对应版本，不需要手动指定架构。
 
-```yaml
-version: '3.8'
+- `latest`：最近一次成功构建的镜像。
+- `vX.Y.Z`：按 Mihomo 核心版本标记的镜像，例如 `v1.19.32`。
 
-services:
-  mihomo:
-    container_name: mihomo
-    image: ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
-    restart: always
-    environment:
-      # 核心配置
-      - TZ=Asia/Shanghai
-      - LOG_LEVEL=silent
-      - CLASH_SECRET=
-      - SUBSCRIBE_URL=your_subscribe_url
-      - SUBSCRIBE_NAME=your_subscribe_name
-    ports:
-      - "7890:7890"  # HTTP代理
-      - "7891:7891"  # SOCKS5代理
-      - "7892:7892"  # 混合代理
-      - "7893:7893"  # TPROXY
-      - "7894:7894"  # REDIR
-      - "9090:9090"  # Clash控制API
-      - "8080:8080"  # Metacubexd Web UI
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    volumes:
-      - ./clash-config:/root/.config/mihomo  # Clash配置文件目录
-      - ./metacubexd-config:/config/caddy    # Metacubexd配置目录
-      # - /etc/timezone:/etc/timezone:ro       # 共享主机时区
-      # - /etc/localtime:/etc/localtime:ro
-    # 如需启用TUN模式，取消以下注释
-    # cap_add:
-    #   - NET_ADMIN
-    # devices:
-    #   - /dev/net/tun:/dev/net/tun
-    networks:
-      - clash-net
+更新现有 Compose 部署：
 
-networks:
-  clash-net:
-    driver: bridge
+```bash
+docker compose pull
+docker compose up -d
 ```
 
-> 若容器网络 `clash-net` 不存在，`docker-compose up -d` 会自动创建（compose 会管理声明的网络）。单独使用 `docker network create` 仅用于 `docker run` 场景。
+## 端口
 
----
+| 端口 | 用途 |
+| --- | --- |
+| `7890` | 混合代理（HTTP + SOCKS5） |
+| `7891` | SOCKS5 代理 |
+| `7892` | HTTP 代理 |
+| `7893` | Redir 代理 |
+| `7894` | TProxy 代理 |
+| `8080` | Dashboard Web 界面 |
+| `9090` | Mihomo 外部控制 API |
 
-## 🛠 使用技巧
+请勿将 `9090` 控制 API 直接暴露到不可信网络。设置 `CLASH_SECRET`，并通过防火墙限制访问。
 
-- **切换订阅**：更新容器挂载目录内的 `config.yaml`，或修改 `SUBSCRIBE_URL` 后重建容器。
-- **修改自定义规则**：编辑挂载目录 `/root/.config/mihomo` 下的 `config.yaml`（首次由模板生成的）。注意：模板只在配置不存在时生效。
-- **重启生效**：配置文件改动后 `docker restart mihomo`。
+## 环境变量
 
-## ⚠️ 常见问题
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `SUBSCRIBE_URL` | 空 | 订阅链接；首次生成配置时写入订阅提供者。 |
+| `SUBSCRIBE_NAME` | `default` | 订阅提供者名称，使用不含空格的 YAML 键名。 |
+| `CLASH_SECRET` | 空 | Mihomo 控制 API 密钥；建议设置强密码。 |
+| `LOG_LEVEL` | `info` | Mihomo 日志级别，例如 `silent`、`error`、`warning`、`info`、`debug`。 |
+| `TZ` | 镜像默认时区 | 容器时区，例如 `Asia/Shanghai`。 |
 
-- **面板打不开**：检查 `8080` 端口是否映射，`docker logs mihomo` 查看 Caddy 日志。
-- **订阅配置无效**：确认 `SUBSCRIBE_URL` 格式（以 `https://` 开头），若订阅含特殊字符请 URL 编码。
-- **节点不显示**：节点来自订阅，URL 错误或墙外时 `proxy-providers` 拉取会失败，查看 mihomo 日志确认。
-- **TUN 模式**：启用 TUN 后，宿主机需 `NET_ADMIN` 权限并挂载 `/dev/net/tun` 设备，取消 compose 中注释即可。
+## 配置与数据
 
----
+Compose 文件会将以下目录挂载到项目目录，容器首次启动时会自动创建：
 
->
-> 仓库地址：https://github.com/DWX256OnGitHub/Proxy-and-Dashboard
->
-> 作者：[daitcl](https://blog.daitcc.top)
->
-> 项目源码：[mihomo](https://github.com/MetaCubeX/mihomo) | [Metacubexd](https://github.com/MetaCubeX/metacubexd)
->
-> 协议：[MIT](License)
-> 
+- `./clash-config`：Mihomo 配置及运行数据。首次启动生成 `config.yaml`；之后环境变量不会覆盖已有配置。
+- `./metacubexd-config`：Caddy 配置数据。
 
-### 📄 许可证
+修改配置后重启：
 
->
->协议：[MIT](License) — 允许任何人自由使用、复制、修改、合并、发布、分发、再授权和/或销售软件的副本，前提是保留原始版权声明和许可声明。
->
->免责声明：软件按“原样”提供，不附带任何明示或暗示的保证，包括但不限于适销性、特定用途适用性和非侵权的保证。在任何情况下，作者或版权持有人均不对任何索赔、损害或其他责任负责，无论是在合同诉讼、侵权诉讼或其他诉讼中，由于软件或软件的使用或其他交易引起的。
->
+```bash
+docker compose restart mihomo
+```
 
-### 🔗 来找我
+如果修改了 `SUBSCRIBE_URL`、`SUBSCRIBE_NAME`、`CLASH_SECRET` 或 `LOG_LEVEL`，请同时按需更新已有的 `clash-config/config.yaml`，再重启容器。
 
-- **CSDN**：[daitcl的博客](https://blog.csdn.net/qq_39538318) — csdn、技术文章和教程
-- **GitHub**：[@daitcl](https://github.com/daitcl) —  个人代码仓库（**gitee/gitcode**同名同步）
-- **爱发电**：[爱发电主页](https://ifdian.net/a/daitcc) — 欢迎支持、分享或合作
-- **个人主页**：[daitcc.top](https://www.daitcc.top) — 个人主页、技术文章和教程
-- **邮箱**：daitcctop@163.com — 欢迎交流、指正或闲聊
-- **微信公众号**：扫一扫下方二维码，关注公众号获取更新推送  
-  <img src="https://raw.gitcode.com/daitcl/picgo/raw/main/wechat_qrcode.jpg" alt="微信公众号二维码" width="150" />
+## 常见问题
 
-### ☕ 支持与鼓励
+- **Dashboard 无法访问：**确认 `8080` 已映射，并检查 `docker compose logs mihomo`。
+- **订阅或节点未加载：**检查订阅链接、容器网络连接和 `clash-config/config.yaml`。
+- **TUN 启动失败：**确认宿主机支持 TUN，并按快速开始部分配置 `NET_ADMIN` 和 `/dev/net/tun`；也可以关闭 `tun.enable`。
+- **GHCR 拉取提示未授权：**如果镜像包设为私有，先运行 `docker login ghcr.io`；公开分发请将 GHCR 包可见性设为 Public。
 
->
-> 如果代码对你有所启发，或者单纯想请我喝杯咖啡，可以通过下方的 **爱发电** 或者 **支付宝/微信赞赏码** 来支持我创作。每一份鼓励都是我持续创作的动力。
->
+## 项目与许可
 
-- **爱发电**：[赞助作者](https://ifdian.net/a/daitcc) — 点击链接即可支持  
-  <img src="https://raw.gitcode.com/daitcl/picgo/raw/main/ifdian.png" alt="爱发电" width="150" />
-  
-- **支付宝赞赏**：扫一扫下方二维码  
-  <img src="https://raw.gitcode.com/daitcl/picgo/raw/main/alipay.png" alt="支付宝收款码" width="150" />      
-
-- **微信赞赏**：扫一扫下方二维码  
-  <img src="https://raw.gitcode.com/daitcl/picgo/raw/main/wechatpay.png" alt="微信赞赏码" width="150" />
-
->“独行快，众行远。” 感谢你的每一次阅读、点赞和分享。  
->期待在技术道路上，与你并肩前行。
+- 仓库：[DWX256OnGitHub/Proxy-and-Dashboard](https://github.com/DWX256OnGitHub/Proxy-and-Dashboard)
+- 原仓库：[daitcl/mihomo](https://github.com/daitcl/mihomo)
+- 原作者：[daitcl](https://github.com/daitcl)
+- 上游项目：[Mihomo](https://github.com/MetaCubeX/mihomo) · [MetaCubeX Dashboard](https://github.com/MetaCubeX/metacubexd)
+- 许可：[MIT](./License)
