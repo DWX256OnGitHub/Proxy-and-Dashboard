@@ -3,9 +3,9 @@
 ---
 
 <div align="center">
-  <img src="https://img.shields.io/github/last-commit/daitcl/mihomo" alt="最后提交">
-  <img src="https://img.shields.io/github/actions/workflow/status/daitcl/mihomo/docker-build.yml" alt="构建状态">
-  <a href="https://github.com/daitcl/mihomo/blob/main/License">
+  <img src="https://img.shields.io/github/last-commit/DWX256OnGitHub/Proxy-and-Dashboard" alt="最后提交">
+  <img src="https://img.shields.io/github/actions/workflow/status/DWX256OnGitHub/Proxy-and-Dashboard/docker-build.yml" alt="构建状态">
+  <a href="https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/blob/main/License">
     <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT许可证">
   </a>
   <a href="https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/pkgs/container/proxy-and-dashboard">
@@ -58,7 +58,7 @@ docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
 
 > 建议固定版本（如 `docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:vX.Y.Z`）以保证行为可预期，`latest` 跟随最新构建。
 >
-> 镜像同时支持 `linux/amd64` 和 `linux/arm64`；Docker 会根据主机架构自动拉取对应版本。
+> 本仓库构建并发布的镜像可在 `linux/amd64` 和 `linux/arm64` 系统上运行。ARM64 系统可直接运行 ARM64 版本，无需模拟 amd64；Docker 会根据主机架构自动拉取对应版本。
 
 ---
 
@@ -114,8 +114,8 @@ docker run -d \
 
 ```bash
 # 克隆并进入目录
-git clone https://github.com/daitcl/mihomo.git
-cd mihomo
+git clone https://github.com/DWX256OnGitHub/Proxy-and-Dashboard.git
+cd Proxy-and-Dashboard
 
 # 修改 docker-compose.yml 中的 SUBSCRIBE_URL
 # （或复制一份另用）
@@ -193,7 +193,7 @@ networks:
 ---
 
 >
-> 仓库地址：https://github.com/daitcl/mihomo
+> 仓库地址：https://github.com/DWX256OnGitHub/Proxy-and-Dashboard
 >
 > 作者：[daitcl](https://blog.daitcc.top)
 >
