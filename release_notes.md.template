@@ -8,10 +8,7 @@
   <a href="https://github.com/daitcl/mihomo/blob/main/License">
     <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT许可证">
   </a>
- <a href="https://hub.docker.com/r/daitcl/mihomo">
-   <img src="https://img.shields.io/docker/pulls/daitcl/mihomo" alt="Docker Hub Pulls">
- </a>
-  <a href="https://github.com/daitcl/mihomo/pkgs/container/mihomo">
+  <a href="https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/pkgs/container/proxy-and-dashboard">
     <img src="https://img.shields.io/badge/GHCR.io-Package-blue?logo=github" alt="GHCR Package">
   </a>
 </div>
@@ -39,12 +36,12 @@ docker run -d --name mihomo --restart always --network clash-net \
   -p 9090:9090 -p 8080:8080 \
   -e SUBSCRIBE_URL="你的订阅链接" \
   -e TZ=Asia/Shanghai \
-  daitcl/mihomo:{{MI_VERSION}}
+  ghcr.io/dwx256ongithub/proxy-and-dashboard:{{MI_VERSION}}
 ```
 
 3. **访问面板**：浏览器打开 `http://<服务器IP>:8080`，登录后即可切换节点、查看流量。
 
-> 建议固定版本号使用（如 `daitcl/mihomo:{{MI_VERSION}}`），以保证行为可预期。
+> 建议固定版本号使用（如 `ghcr.io/dwx256ongithub/proxy-and-dashboard:{{MI_VERSION}}`），以保证行为可预期。
 
 ---
 
@@ -63,10 +60,7 @@ docker run -d --name mihomo --restart always --network clash-net \
 ## 🐳 拉取镜像
 
 ```bash
-# Docker Hub
-docker pull daitcl/mihomo:{{MI_VERSION}}
-# GitHub Container Registry
-docker pull ghcr.io/daitcl/mihomo:{{MI_VERSION}}
+docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:{{MI_VERSION}}
 ```
 
 ---
@@ -100,7 +94,7 @@ docker run -d \
   --health-interval 30s \
   --health-timeout 10s \
   --health-retries 3 \
-  daitcl/mihomo:{{MI_VERSION}}
+  ghcr.io/dwx256ongithub/proxy-and-dashboard:{{MI_VERSION}}
 ```
 
 **参数说明：**
@@ -141,7 +135,7 @@ version: '3.8'
 services:
   mihomo:
     container_name: mihomo
-    image: daitcl/mihomo:{{MI_VERSION}}
+    image: ghcr.io/dwx256ongithub/proxy-and-dashboard:{{MI_VERSION}}
     restart: always
     environment:
       # 核心配置

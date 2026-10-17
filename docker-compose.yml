@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mihomo:
     container_name: mihomo
-    image: daitcl/mihomo:latest
+    image: ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
     restart: always
     environment:
       # 核心配置

@@ -1,5 +1,5 @@
 # ========== 第一阶段：构建 Metacubexd 前端 ==========
-FROM node:20-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:20-alpine AS frontend-builder
 
 ARG METACUBEXD_VERSION
 ENV PNPM_HOME="/pnpm"
@@ -50,6 +50,7 @@ FROM caddy:alpine
 
 ARG MI_VERSION
 ARG METACUBEXD_VERSION
+ARG TARGETARCH
 # 将构建参数设置为环境变量，供运行时使用
 ENV MI_VERSION=${MI_VERSION}
 ENV METACUBEXD_VERSION=${METACUBEXD_VERSION}
@@ -71,7 +72,12 @@ RUN apk update && apk add --no-cache libcap curl bash gettext coreutils tzdata \
 
 # 下载并安装 Mihomo 核心
 RUN mkdir -p /root/.config/mihomo \
-    && curl -fL "https://github.com/MetaCubeX/mihomo/releases/download/${MI_VERSION}/mihomo-linux-amd64-compatible-${MI_VERSION}.gz" -o /tmp/mihomo.gz \
+    && case "${TARGETARCH}" in \
+         amd64) MIHOMO_ARCH="amd64-compatible" ;; \
+         arm64) MIHOMO_ARCH="arm64" ;; \
+         *) echo "不支持的目标架构: ${TARGETARCH}" >&2; exit 1 ;; \
+       esac \
+    && curl -fL "https://github.com/MetaCubeX/mihomo/releases/download/${MI_VERSION}/mihomo-linux-${MIHOMO_ARCH}-${MI_VERSION}.gz" -o /tmp/mihomo.gz \
     && gunzip /tmp/mihomo.gz && mv /tmp/mihomo /usr/local/bin/mihomo \
     && chmod +x /usr/local/bin/mihomo \
     && setcap 'cap_net_bind_service=+ep' /usr/local/bin/mihomo

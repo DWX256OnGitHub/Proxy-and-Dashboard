@@ -8,10 +8,7 @@
   <a href="https://github.com/daitcl/mihomo/blob/main/License">
     <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT许可证">
   </a>
- <a href="https://hub.docker.com/r/daitcl/mihomo">
-   <img src="https://img.shields.io/docker/pulls/daitcl/mihomo" alt="Docker Hub Pulls">
- </a>
-  <a href="https://github.com/daitcl/mihomo/pkgs/container/mihomo">
+  <a href="https://github.com/DWX256OnGitHub/Proxy-and-Dashboard/pkgs/container/proxy-and-dashboard">
     <img src="https://img.shields.io/badge/GHCR.io-Package-blue?logo=github" alt="GHCR Package">
   </a>
 </div>
@@ -32,12 +29,12 @@ docker run -d --name mihomo --restart always --network clash-net \
   -p 9090:9090 -p 8080:8080 \
   -e SUBSCRIBE_URL="你的订阅链接" \
   -e TZ=Asia/Shanghai \
-  daitcl/mihomo:latest
+  ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
 ```
 
 3. **访问面板**：浏览器打开 `http://<服务器IP>:8080`，登录后即可切换节点、查看流量。
 
-> 提示：你将 v 换成上一步拿到的实际版本号，避免使用 `latest` 时可固定版本，例如 `docker pull daitcl/mihomo:v1.19.25`。
+> 提示：将 `latest` 换成实际版本号即可固定版本，例如 `docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:v1.19.25`。
 
 ---
 
@@ -56,13 +53,12 @@ docker run -d --name mihomo --restart always --network clash-net \
 ## 🐳 拉取镜像
 
 ```bash
-# Docker Hub
-docker pull daitcl/mihomo:latest
-# GitHub Container Registry
-docker pull ghcr.io/daitcl/mihomo:latest
+docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
 ```
 
-> 建议固定版本（如 `docker pull daitcl/mihomo:vX.Y.Z`）以保证行为可预期，`latest` 跟随最新构建。
+> 建议固定版本（如 `docker pull ghcr.io/dwx256ongithub/proxy-and-dashboard:vX.Y.Z`）以保证行为可预期，`latest` 跟随最新构建。
+>
+> 镜像同时支持 `linux/amd64` 和 `linux/arm64`；Docker 会根据主机架构自动拉取对应版本。
 
 ---
 
@@ -95,7 +91,7 @@ docker run -d \
   --health-interval 30s \
   --health-timeout 10s \
   --health-retries 3 \
-  daitcl/mihomo:latest
+  ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
 ```
 
 **参数说明：**
@@ -137,7 +133,7 @@ version: '3.8'
 services:
   mihomo:
     container_name: mihomo
-    image: daitcl/mihomo:latest
+    image: ghcr.io/dwx256ongithub/proxy-and-dashboard:latest
     restart: always
     environment:
       # 核心配置
