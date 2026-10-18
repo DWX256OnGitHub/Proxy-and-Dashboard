@@ -16,6 +16,8 @@
 - 将 Mihomo 核心与 MetaCubeX Dashboard 集成在一个容器中。
 - 发布 `linux/amd64` 和 `linux/arm64` 多架构镜像；ARM64 主机可直接运行对应镜像。
 - 首次启动时根据环境变量生成 Mihomo 配置，并将配置保存在挂载目录中。
+- 直接读取返回 Clash/Mihomo YAML 格式的订阅，并使用 ACL4SSR Full AdblockPlus 规则集，无需订阅转换器。
+- 启动时自动刷新订阅和 ACL4SSR 规则，之后每 24 小时更新；已有缓存时若更新失败，会继续使用缓存。
 - Dashboard 由 Caddy 提供，通过同一 Web 端口访问面板和代理 API。
 
 ## 快速开始
@@ -136,8 +138,8 @@ docker compose up -d
 
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `SUBSCRIBE_URL` | 空 | 订阅链接；首次生成配置时写入订阅提供者。 |
-| `SUBSCRIBE_NAME` | `default` | 订阅提供者名称，使用不含空格的 YAML 键名。 |
+| `SUBSCRIBE_URL` | 空 | 返回 Clash/Mihomo YAML 格式的订阅 URL，内容需包含 `proxies`；首次生成配置时写入订阅提供者。 |
+| `SUBSCRIBE_NAME` | `default` | 订阅提供者名称；自动刷新时仅支持字母、数字、点、下划线和连字符。 |
 | `CLASH_SECRET` | 空 | Mihomo 控制 API 密钥；建议设置强密码。 |
 | `LOG_LEVEL` | `info` | Mihomo 日志级别，例如 `silent`、`error`、`warning`、`info`、`debug`。 |
 | `TZ` | 镜像默认时区 | 容器时区，例如 `Asia/Shanghai`。 |
@@ -149,13 +151,21 @@ Compose 文件会将以下目录挂载到项目目录，容器首次启动时会
 - `./clash-config`：Mihomo 配置及运行数据。首次启动生成 `config.yaml`；之后环境变量不会覆盖已有配置。
 - `./metacubexd-config`：Caddy 配置数据。
 
+### 订阅与规则更新
+
+容器使用 Mihomo 的 `proxy-providers` 直接拉取订阅，并通过远程 `rule-providers` 加载 ACL4SSR Full AdblockPlus 规则列表。规则按 Mihomo 原生 `classical` 文本格式读取，无需把订阅交给转换服务。
+
+入口脚本会在 Mihomo 控制 API 就绪后主动刷新订阅和 ACL4SSR 规则；Mihomo 也会按配置每 24 小时自动检查更新。首次启动需要容器能访问订阅地址和 ACL4SSR 规则源。后续更新失败时会记录警告，并继续使用已有缓存；若首次拉取失败且本地没有缓存，相关 provider 将无法加载。
+
+本次更新的模板只会在首次生成 `config.yaml` 时生效。已有部署若要切换到 ACL4SSR 规则，请先备份 `clash-config/config.yaml`，再删除该文件并重启容器以按新模板重新生成；自定义设置需要重新合并。
+
 修改配置后重启：
 
 ```bash
 docker compose restart mihomo
 ```
 
-如果修改了 `SUBSCRIBE_URL`、`SUBSCRIBE_NAME`、`CLASH_SECRET` 或 `LOG_LEVEL`，请同时按需更新已有的 `clash-config/config.yaml`，再重启容器。
+如果修改了 `SUBSCRIBE_URL`、`SUBSCRIBE_NAME`、`CLASH_SECRET` 或 `LOG_LEVEL`，请同时按需更新已有的 `clash-config/config.yaml`，再重启容器。自动刷新使用 `CLASH_SECRET` 调用控制 API，因此环境变量和配置文件中的密钥需保持一致。
 
 ## 常见问题
 
